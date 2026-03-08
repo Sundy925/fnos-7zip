@@ -1,0 +1,13 @@
+#!/bin/bash
+
+### This script is called after the user installs the application.
+
+APP_TOOL_BIN_FILE="${TRIM_APPDEST}/bin/7zz"
+
+if [ -x "$APP_TOOL_BIN_FILE" ]
+then
+   #创建符号链接
+   ln -fs $APP_TOOL_BIN_FILE /bin/${APP_TOOL_BIN_FILE##*/}
+fi
+
+exit 0

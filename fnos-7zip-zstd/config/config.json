@@ -1,0 +1,9 @@
+{
+    "roots": [
+        {
+            "name": "host_fs",
+            "path": "/host_fs"
+        }
+    ],
+    "settings": {}
+}

@@ -1,0 +1,13 @@
+#!/bin/bash
+
+LOG_FILE="${TRIM_PKGTMP}/info.log"
+
+log_msg() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> ${LOG_FILE}
+}
+### This script is called before the user change environment variables in application setting page.
+log_msg "config_callback: TRIM_DATA_ACCESSIBLE_PATHS: ${TRIM_DATA_ACCESSIBLE_PATHS}"
+
+curl -X POST -H "Content-Type: application/json" -d "{\"paths\": \"${TRIM_DATA_ACCESSIBLE_PATHS}\"}" http://127.0.0.1:5000/api/reload-config >> ${LOG_FILE} 2>&1
+
+exit 0

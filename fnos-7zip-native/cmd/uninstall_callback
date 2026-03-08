@@ -1,0 +1,13 @@
+#!/bin/bash
+
+### This script is called after the user uninstalls the application.
+
+APP_TOOL_BIN_FILE="${TRIM_APPDEST}/bin/7zz"
+
+if [ -L "/bin/${APP_TOOL_BIN_FILE##*/}" ]
+then
+   #删除符号链接
+   rm -f "/bin/${APP_TOOL_BIN_FILE##*/}"
+fi
+
+exit 0

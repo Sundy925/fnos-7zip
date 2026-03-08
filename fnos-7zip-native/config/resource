@@ -1,0 +1,28 @@
+{
+    "data-share":
+    {
+        "shares":
+        [
+            {
+                "name": "fnos-7zip-native",
+                "permission":
+                {
+                    "rw":
+                    [
+                        "fnos-7zip-native"
+                    ]
+                }
+            },
+            {
+                "name": "fnos-7zip-native/data",
+                "permission":
+                {
+                    "rw":
+                    [
+                        "fnos-7zip-native"
+                    ]
+                }
+            }
+        ]
+    }
+}

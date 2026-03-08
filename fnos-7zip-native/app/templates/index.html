@@ -1,0 +1,1880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>7-Zip</title>
+    <link rel="icon" type="image/png" href="/static/images/favicon.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f5f6fa;
+            --text-color: #212529;
+            --sidebar-bg: #ffffff;
+            --sidebar-border: #e0e0e0;
+            --card-bg: #ffffff;
+            --card-shadow: rgba(0,0,0,0.05);
+            --hover-bg: #f8f9fa;
+            --selected-bg: #e8f0fe;
+            --border-color: #dee2e6;
+            --muted-text: #6c757d;
+            --primary-color: #0d6efd;
+            --link-color: #495057;
+            --link-active-bg: #e8f0fe;
+            --link-active-color: #1a73e8;
+            --console-bg: #212529;
+            --console-text: #fff;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --sidebar-bg: #1e1e1e;
+            --sidebar-border: #333;
+            --card-bg: #1e1e1e;
+            --card-shadow: rgba(0,0,0,0.3);
+            --hover-bg: #2c2c2c;
+            --selected-bg: #2a405e;
+            --border-color: #444;
+            --muted-text: #adb5bd;
+            --primary-color: #64b5f6;
+            --link-color: #ced4da;
+            --link-active-bg: #2a405e;
+            --link-active-color: #8ab4f8;
+            --console-bg: #000;
+            --console-text: #0f0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        .modal-content {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+        
+        .form-control, .form-select {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+        
+        .form-control:focus, .form-select:focus {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            border-color: var(--primary-color);
+        }
+
+        .sidebar {
+            background-color: var(--sidebar-bg);
+            height: 100vh;
+            border-right: 1px solid var(--sidebar-border);
+            padding-top: 20px;
+        }
+        .main-content {
+            padding: 20px;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .file-browser-container {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px var(--card-shadow);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        .breadcrumb-bar {
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb-item-btn {
+            background-color: var(--hover-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 2px 8px;
+            margin: 0 2px;
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        .breadcrumb-item-btn:hover {
+            background-color: var(--selected-bg);
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .file-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .table {
+            color: var(--text-color);
+        }
+        .table-light {
+            --bs-table-bg: var(--hover-bg);
+            --bs-table-color: var(--text-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+        /* Fix for dark mode table rows inheritance */
+        .table > :not(caption) > * > * {
+            background-color: transparent; 
+            color: var(--text-color);
+        }
+        .table-hover tbody tr:hover {
+            background-color: var(--hover-bg);
+        }
+        .file-icon {
+            width: 24px;
+            text-align: center;
+            margin-right: 10px;
+            color: var(--muted-text);
+        }
+        .folder-icon {
+            color: #ffd700;
+        }
+        .selected-row {
+            background-color: var(--selected-bg) !important;
+        }
+        .nav-link {
+            color: var(--link-color);
+            padding: 10px 20px;
+            border-radius: 0 20px 20px 0;
+            margin-right: 10px;
+        }
+        .nav-link.active {
+            background-color: var(--link-active-bg);
+            color: var(--link-active-color);
+            font-weight: 500;
+        }
+        .nav-link:hover {
+            background-color: var(--hover-bg);
+            color: var(--text-color);
+        }
+        .status-bar {
+            padding: 5px 15px;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.85rem;
+            color: var(--muted-text);
+            background-color: var(--card-bg);
+        }
+        #output {
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            background-color: var(--console-bg);
+            color: var(--console-text);
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 5px;
+            font-family: monospace;
+        }
+        
+        /* Context Menu */
+        .context-menu {
+            display: none;
+            position: absolute;
+            z-index: 1000;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            border-radius: 4px;
+            padding: 5px 0;
+            min-width: 150px;
+        }
+        .context-menu-item {
+            padding: 8px 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            color: var(--text-color);
+        }
+        .context-menu-item:hover {
+            background-color: var(--hover-bg);
+        }
+        .context-menu-item i {
+            width: 20px;
+            margin-right: 8px;
+        }
+        
+        .btn-toolbar-custom {
+            display: flex;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar d-none d-md-block">
+                <div class="d-flex align-items-center mb-4 px-3">
+                    <i class="fa-solid fa-cloud fa-lg text-primary me-2"></i>
+                    <h5 class="mb-0 fw-bold">7-Zip</h5>
+                </div>
+                <nav class="nav flex-column" id="sidebarNav">
+                    <!-- Dynamic Navigation -->
+                </nav>
+                <div class="mt-auto p-3 text-muted small border-top">
+                    <div>
+                        <a href="#" class="text-decoration-none text-muted" data-bs-toggle="modal" data-bs-target="#aboutModal">
+                            <i class="fa-solid fa-circle-info me-1"></i> <span data-i18n="about">About</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 main-content">
+                <!-- Toolbar -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="btn-toolbar-custom">
+                        <button class="btn btn-light border btn-sm" onclick="navigateUp()" title="Up"><i class="fa-solid fa-arrow-up"></i></button>
+                        <button class="btn btn-light border btn-sm" onclick="refreshFiles()" title="Refresh"><i class="fa-solid fa-rotate-right"></i></button>
+                        <div class="vr mx-1"></div>
+                        <button class="btn btn-primary btn-sm" onclick="openCompressModal()" id="btnCompress" disabled>
+                            <i class="fa-solid fa-file-zipper"></i> <span data-i18n="compress">Compress</span>
+                        </button>
+                        <button class="btn btn-success btn-sm" onclick="openDecompressModal()" id="btnExtract" disabled>
+                            <i class="fa-solid fa-box-open"></i> <span data-i18n="extract">Extract</span>
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteFiles()" id="btnDelete" disabled>
+                            <i class="fa-solid fa-trash"></i> <span data-i18n="delete">Delete</span>
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="openCreateFolderModal()">
+                            <i class="fa-solid fa-folder-plus"></i> <span data-i18n="create_folder">Create Folder</span>
+                        </button>
+                        <button class="btn btn-info btn-sm text-white" data-bs-toggle="modal" data-bs-target="#advancedModal" onclick="initAdvancedModal()">
+                            <i class="fa-solid fa-filter"></i> <span data-i18n="advanced">Advanced</span>
+                        </button>
+                    </div>
+                    <div class="btn-toolbar-custom">
+                        <button class="btn btn-light border btn-sm" onclick="openSettingsModal()" title="Settings">
+                            <i class="fa-solid fa-gear"></i> <span data-i18n="settings">Settings</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- File Browser -->
+                <div class="file-browser-container">
+                    <div class="breadcrumb-bar">
+                        <span class="text-muted me-2" data-i18n="path">Path:</span>
+                        <div id="breadcrumbPath" class="d-flex flex-wrap">
+                            <!-- Breadcrumbs will be injected here -->
+                        </div>
+                    </div>
+                    <div class="file-list" id="fileListContainer">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th style="width: 40px;"><input type="checkbox" class="form-check-input" id="selectAll" onclick="toggleSelectAll()"></th>
+                                    <th data-i18n="name">Name</th>
+                                    <th style="width: 100px;" data-i18n="size">Size</th>
+                                    <th style="width: 150px;" data-i18n="modified">Modified</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fileTableBody">
+                                <!-- Files will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="status-bar d-flex justify-content-between">
+                        <span id="itemCount">0 items</span>
+                        <span id="selectionCount">0 selected</span>
+                    </div>
+                </div>
+
+                <!-- Console Output -->
+				<div id="consoleContainer" style="display:none;">
+					<div class="d-flex justify-content-between align-items-center mt-2 px-1">
+						<small class="text-muted" data-i18n="console_output">Console Output</small>
+						<button class="btn btn-sm btn-link text-muted p-0 text-decoration-none" onclick="toggleLog()">
+							 <i class="fa-solid fa-chevron-up" id="logToggleIcon"></i>
+						</button>
+					</div>
+					<div id="output" class="collapse"></div>
+				</div>
+            </div>
+        </div>
+    </div>
+	
+    <!-- Settings Modal -->
+    <div class="modal fade" id="settingsModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" data-i18n="settings">Settings</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+
+                    <!-- <button class="btn btn-light border btn-sm" onclick="toggleTheme()" id="themeBtn" title="Toggle Theme">
+                        <i class="fa-solid fa-moon"></i>
+                    </button> -->
+                    <!-- <button class="btn btn-light border btn-sm" onclick="toggleLog()" id="logBtn" title="Toggle Log">
+                        <i class="fa-solid fa-terminal"></i>
+                    </button> -->
+                    <!-- <div class="input-group input-group-sm align-items-center" style="width:auto;">
+                        <span class="input-group-text">Temp MB</span>
+                        <input type="number" min="10" max="2048" step="10" class="form-control" id="tempExtractMB" style="max-width:100px;">
+                    </div> -->
+                    <!-- <select class="form-select form-select-sm" id="langSelect" onchange="setLanguage(this.value)" style="width: auto;">
+                        <option value="en">English</option>
+                        <option value="zh">中文</option>
+                    </select> -->
+                    <div class="mb-3">
+                        <label class="form-label" data-i18n="language" >Language</label>
+                        <select class="form-select form-select-sm" id="langSelect" onchange="setLanguage(this.value)">
+                        <option value="en">English</option>
+                        <option value="zh">中文</option>
+                    </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" data-i18n="theme">Theme</label>
+                        <button class="btn btn-dark btn-sm" id="themeBtn" title="Toggle Theme">
+                            <i class="fa-solid fa-moon"></i>    
+                        </button>
+                        <select class="form-select" id="settingTheme" onchange="setTheme(this.value)">
+                            <option value="light" data-i18n="light">Light</option>
+                            <option value="dark" data-i18n="dark">Dark</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" data-i18n="temp_size_mb">Temp File Size (MB)</label>
+                        <input type="number" min="100" max="8192" step="100" class="form-control" id="tempExtractMB">
+                        <div class="form-text text-muted" data-i18n="temp_size_hint">Max size for temp extraction</div>
+                    </div>
+                    <div class="mb-3 form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="settingShowConsole" onchange="ShowLogConsole(this.checked)">
+                        <label class="form-check-label" for="settingShowConsole" data-i18n="show_console">Show Console</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+	
+    <!-- Compress Modal -->
+    <div class="modal fade" id="compressModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" data-i18n="compress_files">Compress Files</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label" data-i18n="archive_name">Archive Name</label>
+                        <input type="text" class="form-control" id="archiveName" value="archive">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" data-i18n="destination">Destination</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="compressDest" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="openFilePicker('compressDest')">
+                                <i class="fa-solid fa-folder-open"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label" data-i18n="format">Format</label>
+                            <select class="form-select" id="format" onchange="updateCompressOptions()">
+                                <option value="7z">7z</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label" data-i18n="method">Method</label>
+                            <select class="form-select" id="method">
+                                <option value="zstd">Zstd</option>
+                                <option value="lzma2">LZMA2</option>
+                                <option value="lz4">LZ4</option>
+                                <option value="brotli">Brotli</option>
+                                <option value="lizard">Lizard</option>
+                                <option value="lz5">LZ5</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" data-i18n="level">Compression Level (0-22)</label>
+                        <input type="range" class="form-range" id="level" min="0" max="22" value="3" oninput="document.getElementById('levelVal').innerText = this.value">
+                        <div class="text-end text-muted small"><span data-i18n="level">Level</span>: <span id="levelVal">3</span></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="cancel">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="compressFiles()" data-i18n="create">Create Archive</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Decompress Modal -->
+    <div class="modal fade" id="decompressModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" data-i18n="extract_files">Extract Files</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label" data-i18n="archive_file">Archive File</label>
+                        <input type="text" class="form-control" id="extractArchiveFile" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" data-i18n="destination">Destination</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="extractDest" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="openFilePicker('extractDest')">
+                                <i class="fa-solid fa-folder-open"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="cancel">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="decompressFile()" data-i18n="extract">Extract</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced Modal -->
+    <div class="modal fade" id="advancedModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" data-i18n="advanced_compress">Advanced Compression</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label" data-i18n="base_path">Base Path</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="advBasePath" value="/">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="openFilePicker('advBasePath')">
+                                        <i class="fa-solid fa-folder-open"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="searchMode" id="modePattern" checked onchange="toggleAdvMode()">
+                                    <label class="form-check-label fw-bold" for="modePattern" data-i18n="pattern_mode">File Name Pattern Mode</label>
+                                </div>
+                                <div class="ms-4">
+                                    <input type="text" class="form-control" id="advPattern" value="*.log">
+                                    <div class="d-flex gap-3 mt-1">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="advUseRegex">
+                                            <label class="form-check-label" for="advUseRegex" data-i18n="use_regex">Use Regex</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="advRecursive">
+                                            <label class="form-check-label" for="advRecursive" data-i18n="recursive">Recursive Search</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <hr class="my-3">
+
+                            <div class="mb-3">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="searchMode" id="modeCommand" onchange="toggleAdvMode()">
+                                    <label class="form-check-label fw-bold" for="modeCommand" data-i18n="command_mode">Custom Command Mode</label>
+                                </div>
+                                <div class="ms-4">
+                                    <input type="text" class="form-control" id="advCustomCommand" placeholder="find . -name '*.log' -mtime -7" disabled>
+                                </div>
+                            </div>
+                            <button class="btn btn-info text-white mb-3" onclick="previewSearch()">
+                                <i class="fa-solid fa-search"></i> <span data-i18n="preview">Preview</span>
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" data-i18n="results">Results</label>
+                            <div class="border rounded p-2" style="height: 200px; overflow-y: auto; background: var(--bg-color);" id="advResults">
+                                <div class="text-muted text-center mt-5" data-i18n="no_results">No results yet</div>
+                            </div>
+                            <div class="mt-2 text-end">
+                                <small id="advCount">0 files found</small>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" data-i18n="compress_mode">Compression Mode</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="advCompressMode" id="advModePack" checked onchange="toggleAdvCompressMode()">
+                            <label class="form-check-label" for="advModePack" data-i18n="mode_pack">Pack all into one file</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="advCompressMode" id="advModeEach" onchange="toggleAdvCompressMode()">
+                            <label class="form-check-label" for="advModeEach" data-i18n="mode_each">Compress each file individually</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3" id="advIndividualFormat" style="display:none;">
+                        <label class="form-label" data-i18n="format">Format</label>
+                        <select class="form-select" id="advFormat">
+                            <option value="7z">7z</option>
+                            <option value="zst">zst</option>
+                        </select>
+                        <div class="form-text text-muted" data-i18n="mode_each_hint">
+                            New filename will be: original_name + .extension (e.g. video.mp4.zst)
+                        </div>
+                    </div>
+
+                    <div class="mb-3" id="advArchiveNameGroup">
+                        <label class="form-label" data-i18n="archive_name">Archive Name</label>
+                        <input type="text" class="form-control" id="advArchiveName" value="backup">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" data-i18n="destination">Destination</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="advDest" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="openFilePicker('advDest')">
+                                <i class="fa-solid fa-folder-open"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="cancel">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="compressAdvanced()" id="btnAdvCompress" disabled data-i18n="compress">Compress</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Picker Modal -->
+    <div class="modal fade" id="filePickerModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" data-i18n="select_folder">Select Folder</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                     <div class="d-flex align-items-center p-2 border-bottom bg-light">
+                        <button class="btn btn-sm btn-outline-secondary me-2" onclick="pickerNavigateUp()"><i class="fa-solid fa-arrow-up"></i></button>
+                        <strong id="pickerPath" class="text-break">/</strong>
+                     </div>
+                     <div class="list-group list-group-flush" id="pickerList">
+                        <!-- Folders -->
+                     </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="cancel">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="pickerConfirm()" data-i18n="select">Select</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" data-i18n="confirm_delete_title">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="deleteConfirmMsg"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="cancel">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDeleteAction()" data-i18n="delete">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Folder Modal -->
+    <div class="modal fade" id="createFolderModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" data-i18n="create_folder">Create Folder</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label" data-i18n="folder_name">Folder Name</label>
+                        <input type="text" class="form-control" id="newFolderName">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="cancel">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="createFolderAction()" data-i18n="create">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Modal -->
+    <div class="modal fade" id="aboutModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" data-i18n="about">About</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <i class="fa-solid fa-cloud fa-3x text-primary mb-2"></i>
+                        <h5>7zip-ZS</h5>
+                        <p class="text-muted small">Version 1.0.0</p>
+                    </div>
+                    <p data-i18n="about_desc">This application is based on the open source project 7-zip-zstd.</p>
+                    <hr>
+                    <h6>Credits</h6>
+                    <ul>
+                        <li><a href="https://github.com/mcmilk/7-Zip-zstd" target="_blank">7-Zip-zstd</a> (LGPL)</li>
+                        <li><a href="https://www.7-zip.org/" target="_blank">7-Zip</a> (LGPL)</li>
+                        <li><a href="https://facebook.github.io/zstd/" target="_blank">Zstandard</a> (BSD/GPL)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div id="contextMenu" class="context-menu">
+        <div class="context-menu-item" onclick="contextCompress()">
+            <i class="fa-solid fa-file-zipper"></i> <span data-i18n="compress">Compress</span>
+        </div>
+        <div class="context-menu-item" onclick="contextExtract()">
+            <i class="fa-solid fa-box-open"></i> <span data-i18n="extract">Extract</span>
+        </div>
+        <div class="context-menu-item" onclick="contextDelete()">
+            <i class="fa-solid fa-trash"></i> <span data-i18n="delete">Delete</span>
+        </div>
+        <div class="context-menu-item" onclick="refreshFiles()">
+            <i class="fa-solid fa-rotate-right"></i> <span data-i18n="refresh">Refresh</span>
+        </div>
+        <div class="context-menu-item" onclick="openCreateFolderModal()">
+            <i class="fa-solid fa-folder-plus"></i> <span data-i18n="create_folder">Create Folder</span>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // State
+        let currentPath = '/';
+        let selectedFiles = [];
+        let allItems = [];
+        let currentLang = 'en';
+        let pickerTargetInput = '';
+        let pickerCurrentPath = '/';
+        let foundFilesList = []; // For advanced search
+        let currentArchive = null; // Track if we are inside an archive
+        let currentOrigin = null; // Track original archive path (for nested archives)
+
+        // Translations
+        const i18n = {
+            en: {
+                root: "Root", home: "Home", temp: "Temp",
+                compress: "Compress", extract: "Extract", delete: "Delete", advanced: "Advanced",
+                path: "Path:", name: "Name", size: "Size", modified: "Modified",
+                compress_files: "Compress Files", extract_files: "Extract Files",
+                archive_name: "Archive Name", destination: "Destination",
+                format: "Format", method: "Method", level: "Level",
+                refresh: "Refresh",
+                create: "Create",
+                archive_file: "Archive File",
+                advanced_compress: "Advanced Compression",
+                base_path: "Base Path", pattern: "File Name Pattern",
+                recursive: "Recursive Search", preview: "Preview",
+                results: "Results", no_results: "No results yet",
+                select_folder: "Select Folder", select: "Select",
+                loading: "Loading...", success: "Success", error: "Error",
+                items: "items", selected: "selected",
+                use_regex: "Use Regex", custom_command: "Custom Command",
+                pattern_mode: "File Name Pattern Mode", command_mode: "Custom Command Mode",
+                create_folder: "Create Folder", folder_name: "Folder Name",
+                toggle_log: "Toggle Log", console_output: "Console Output",
+                confirm_delete_title: "Confirm Delete",
+                delete: "Delete",
+                items_selected: "items selected",
+                about: "About",
+                about_desc: "This application is based on the open source project 7-zip-zstd.",
+                compress_mode: "Compression Mode",
+                mode_pack: "Pack all into one file",
+                mode_each: "Compress each file individually",
+                mode_each_hint: "New filename will be: original_name + .extension (e.g. video.mp4.zst)",
+				settings: "Settings",
+                temp_size_mb: "Temp File Size (MB)",
+                temp_size_hint: "Max size for temp extraction",
+                show_console: "Show Console",
+                theme: "Theme",
+                language: "Language",
+                save: "Save",
+                light: "Light",
+                dark: "Dark"
+            },
+            zh: {
+                root: "根目录", home: "主目录", temp: "临时目录",
+                compress: "压缩", extract: "解压", delete: "删除", advanced: "高级压缩",
+                path: "路径:", name: "名称", size: "大小", modified: "修改时间",
+                compress_files: "压缩文件", extract_files: "解压文件",
+                archive_name: "压缩包名称", destination: "目标路径",
+                format: "格式", method: "算法", level: "压缩等级",
+                refresh: "刷新",
+                create: "创建",
+                archive_file: "归档文件",
+                advanced_compress: "高级筛选压缩",
+                base_path: "基础路径", pattern: "文件名匹配模式",
+                recursive: "递归搜索", preview: "预览结果",
+                results: "搜索结果", no_results: "暂无结果",
+                select_folder: "选择文件夹", select: "确定选择",
+                loading: "处理中...", success: "成功", error: "错误",
+                items: "项", selected: "已选",
+                use_regex: "正则匹配", custom_command: "自定义命令",
+                pattern_mode: "文件名匹配模式", command_mode: "自定义命令模式",
+                create_folder: "新建文件夹", folder_name: "文件夹名称",
+                toggle_log: "切换日志", console_output: "控制台输出",
+                confirm_delete_title: "确认删除",
+                delete: "删除",
+                items_selected: "项已选择",
+                about: "关于",
+                about_desc: "本应用基于开源项目 7-zip-zstd 实现。",
+                compress_mode: "压缩模式",
+                mode_pack: "全部打包为一个文件",
+                mode_each: "对每一个文件进行打包压缩",
+                mode_each_hint: "新生成的文件名称按原文件名称+压缩后的方式命名，如原始文件是*.mp4，那么压缩后的文件应该是*.mp4.zst。",
+				settings: "设置",
+                temp_size_mb: "临时文件大小 (MB)",
+                temp_size_hint: "临时解压最大限制",
+                show_console: "显示控制台",
+                theme: "主题",
+                language: "语言",
+                save: "保存",
+                light: "浅色",
+                dark: "深色"
+            }
+        };
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            loadConfigAndInit();
+            
+            // Context Menu Global Click to hide
+            document.addEventListener('click', (e) => {
+                document.getElementById('contextMenu').style.display = 'none';
+            });
+
+            // Set initial destination inputs
+            document.getElementById('advBasePath').value = '/';
+            
+            // Detect system theme
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.querySelector('#themeBtn i').className = 'fa-solid fa-moon';
+                // 按钮背景颜色是浅色，则先移除
+                if(document.getElementById('themeBtn').classList.contains('btn-light'))
+                {
+                    document.getElementById('themeBtn').classList.remove('btn-light');
+                }
+                // 按钮没有设置深色主题，则添加
+                if(document.getElementById('themeBtn').classList.contains('btn-dark'))
+                {
+                    document.getElementById('themeBtn').classList.add('btn-dark');
+                }
+                document.getElementById('settingTheme').value = 'dark';
+                
+            }
+        });
+        
+        async function loadConfigAndInit() {
+            // Check for path in URL query parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const openPath = urlParams.get('path');
+
+            try {
+                // Try to get config from server
+                const response = await fetch('/api/config');
+                const data = await response.json();
+                
+                const roots = data.roots;
+                const settings = data.settings || {};
+                
+                // Apply settings
+                if (settings.theme) {
+                    const html = document.documentElement;
+                    const btnIcon = document.querySelector('#themeBtn i');
+                    const themeSelect = document.getElementById('settingTheme');
+                    const themeBtn = document.getElementById('themeBtn');
+                    if (settings.theme === 'dark') {
+                        html.setAttribute('data-theme', 'dark');
+                        btnIcon.className = 'fa-solid fa-moon';
+                        themeSelect.value = 'dark';
+                        themeBtn.classList.replace('btn-light', 'btn-dark');
+                    } else {
+                        html.removeAttribute('data-theme');
+                        btnIcon.className = 'fa-solid fa-sun';
+                        themeSelect.value = 'light';
+                        themeBtn.classList.replace('btn-dark', 'btn-light');
+                    }
+                }
+                
+                if (settings.language) {
+                    currentLang = settings.language;
+                    document.getElementById('langSelect').value = currentLang;
+                    setLanguage(currentLang, false); // false = don't save again
+                } else {
+                    // Default language is en
+                    setLanguage('en', false);
+                }
+                
+                if (settings.show_log) {
+                    const output = document.getElementById('output');
+                    const icon = document.getElementById('logToggleIcon');
+                    new bootstrap.Collapse(output, {toggle: false}).show();
+                    icon.className = 'fa-solid fa-chevron-down';
+                }
+                
+                const tempInput = document.getElementById('tempExtractMB');
+                const defaultMb = 100;
+                tempInput.value = settings.temp_extract_max_mb || defaultMb;
+                tempInput.onchange = () => {
+                    const v = parseInt(tempInput.value, 10);
+                    if (!isNaN(v) && v > 0) saveSettings('temp_extract_max_mb', v);
+                };
+                
+                const sidebar = document.getElementById('sidebarNav');
+                sidebar.innerHTML = '';
+                
+                if (roots && roots.length > 0) {
+                    roots.forEach((root, index) => {
+                        const a = document.createElement('a');
+                        a.className = 'nav-link' + (index === 0 ? ' active' : '');
+                        a.href = '#';
+                        
+                        // Choose icon based on name or path
+                        let iconClass = 'fa-folder';
+                        const lowerName = root.name.toLowerCase();
+                        if (lowerName.includes('root')) iconClass = 'fa-hard-drive';
+                        else if (lowerName.includes('home')) iconClass = 'fa-house';
+                        else if (lowerName.includes('temp') || lowerName.includes('tmp')) iconClass = 'fa-clock';
+                        
+                        // Check if name is i18n key
+                        let displayName = root.name;
+                        const i18nMap = {
+                            'Root': 'root', 'Home': 'home', 'Temp': 'temp'
+                        };
+                        if (i18nMap[root.name] && i18n[currentLang][i18nMap[root.name]]) {
+                            displayName = i18n[currentLang][i18nMap[root.name]];
+                            // Add data-i18n attribute for dynamic language switching
+                            // We need to wrap it in span
+                        }
+                        
+                        a.innerHTML = `<i class="fa-solid ${iconClass} me-2"></i> <span ${i18nMap[root.name] ? `data-i18n="${i18nMap[root.name]}"` : ''}>${displayName}</span>`;
+                        a.onclick = (e) => {
+                            e.preventDefault();
+                            // Remove active from others
+                            sidebar.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                            a.classList.add('active');
+                            loadFiles(root.path);
+                        };
+                        sidebar.appendChild(a);
+                        
+                        // Load first one by default if no path in URL
+                        if (index === 0 && !openPath) {
+                            loadFiles(root.path);
+                        }
+                    });
+                } else {
+                    // Fallback if empty roots and no openPath
+                    if (!openPath) loadFiles('/');
+                }
+                
+                if (openPath) {
+                    loadFiles(openPath);
+                }
+                
+            } catch (e) {
+                console.error("Error loading config", e);
+                // Fallback
+                loadFiles(openPath || '/');
+            }
+        }
+
+        // --- Core File Browser ---
+        async function loadFiles(path) {
+            try {
+                const response = await fetch(`/api/list-files?path=${encodeURIComponent(path)}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                if (data.is_file) {
+                    // It's a real file on disk.
+                    // Check if it is a supported archive to "enter" it
+                    const ext = data.name.split('.').pop().toLowerCase();
+                    const archiveExts = ['7z', 'zip', 'tar', 'gz', 'xz', 'bz2', 'zst', 'lz4', 'br', 'lz', 'rar', 'tgz'];
+                    
+                    if (archiveExts.includes(ext)) {
+                        // Enter archive
+                        loadFiles(data.current_path + '/'); // Append slash to trigger archive listing
+                    } else {
+                        // Normal file selection behavior
+                        currentPath = data.parent;
+                        
+                        // Fetch parent directory items
+                        const parentResponse = await fetch(`/api/list-files?path=${encodeURIComponent(data.parent)}`);
+                        const parentData = await parentResponse.json();
+                        
+                        if (parentData.error) {
+                             alert(parentData.error);
+                             return;
+                        }
+                        
+                        allItems = parentData.items;
+                        currentArchive = null;
+                        updateBreadcrumb(currentPath);
+                        renderFiles();
+                        
+                        // Select the file
+                        selectedFiles = [data.current_path];
+                        updateSelectionUI();
+                        
+                        // Scroll to item
+                        setTimeout(() => {
+                            const checkbox = document.querySelector(`input[value="${CSS.escape(data.current_path)}"]`);
+                            if(checkbox) {
+                                checkbox.closest('tr').scrollIntoView({block: 'center'});
+                            }
+                        }, 100);
+                    }
+                } else {
+                    currentPath = data.current_path;
+                    allItems = data.items;
+                    
+                    // Check if we are inside an archive
+                    if (data.is_archive) {
+                        currentArchive = data.archive_path;
+                        currentOrigin = data.origin_path;
+                    } else {
+                        currentArchive = null;
+                        currentOrigin = null;
+                    }
+                    
+                    updateBreadcrumb(currentPath);
+                    renderFiles();
+                    
+                    // Clear selection
+                    selectedFiles = [];
+                    updateSelectionUI();
+                    document.getElementById('selectAll').checked = false;
+                }
+                
+                // Update Modal destinations default
+                if (currentArchive) {
+                    // If inside archive, default extract dest to archive parent dir
+                    // Use origin_path if available to default to original archive's parent
+                    const target = currentOrigin || currentArchive;
+                    const parentDir = target.substring(0, target.lastIndexOf('/'));
+                    document.getElementById('extractDest').value = parentDir;
+                } else {
+                    document.getElementById('compressDest').value = currentPath;
+                    document.getElementById('advDest').value = currentPath;
+                    document.getElementById('extractDest').value = currentPath;
+                }
+
+            } catch (err) {
+                console.error(err);
+                alert('Failed to load files');
+            }
+        }
+
+        function updateBreadcrumb(path) {
+            const container = document.getElementById('breadcrumbPath');
+            container.innerHTML = '';
+            
+            // Normalize path
+            if (!path.startsWith('/')) path = '/' + path;
+            if (path.endsWith('/') && path.length > 1) path = path.slice(0, -1);
+            
+            const parts = path.split('/').filter(p => p);
+            
+            // Root
+            const rootSpan = document.createElement('span');
+            rootSpan.innerHTML = '<a href="#" onclick="loadFiles(\'/\')" class="breadcrumb-item-btn fw-bold">/</a>';
+            container.appendChild(rootSpan);
+            
+            let currentBuild = '';
+            parts.forEach((part, index) => {
+                currentBuild += '/' + part;
+                const separator = document.createElement('span');
+                separator.className = 'mx-1 text-muted';
+                separator.innerText = '>';
+                container.appendChild(separator);
+                
+                const link = document.createElement('a');
+                link.href = '#';
+                link.className = 'breadcrumb-item-btn ' + (index === parts.length - 1 ? 'active' : '');
+                link.innerText = part;
+                const targetPath = currentBuild; // Closure capture
+                link.onclick = (e) => {
+                    e.preventDefault();
+                    loadFiles(targetPath);
+                };
+                container.appendChild(link);
+            });
+        }
+
+        function renderFiles() {
+            const tbody = document.getElementById('fileTableBody');
+            tbody.innerHTML = '';
+            
+            allItems.forEach(item => {
+                const tr = document.createElement('tr');
+                
+                // Row Click
+                tr.onclick = (e) => {
+                    if (e.target.type !== 'checkbox') {
+                        const checkbox = tr.querySelector('input[type="checkbox"]');
+                        checkbox.checked = !checkbox.checked;
+                        toggleSelection(item.path);
+                    }
+                };
+                
+                // Context Menu
+                tr.oncontextmenu = (e) => {
+                    e.preventDefault();
+                    // Select this row if not selected
+                    if (!selectedFiles.includes(item.path)) {
+                         // Clear others? Maybe not, allow multi-select context menu
+                         if (!e.ctrlKey) {
+                             // If simple right click, usually selects just this one
+                             selectedFiles = [item.path];
+                             document.querySelectorAll('#fileTableBody input[type="checkbox"]').forEach(cb => cb.checked = false);
+                             tr.querySelector('input[type="checkbox"]').checked = true;
+                             updateSelectionUI();
+                         } else {
+                             // If ctrl+right click (uncommon), just add
+                             if (!selectedFiles.includes(item.path)) toggleSelection(item.path);
+                         }
+                    }
+                    showContextMenu(e);
+                };
+
+                const iconClass = item.is_dir ? 'fa-folder folder-icon' : 'fa-file';
+                const sizeStr = item.is_dir ? '-' : formatBytes(item.size);
+                const dateStr = item.mtime ? new Date(item.mtime * 1000).toLocaleString() : '-';
+
+                // Check for 7zip icon support
+                let iconHtml = `<i class="fa-solid ${iconClass} file-icon"></i>`;
+                let isArchive = false;
+                
+                if (!item.is_dir) {
+                    const ext = item.name.split('.').pop().toLowerCase();
+                    const archiveExts = ['7z', 'zip', 'tar', 'gz', 'xz', 'bz2', 'zst', 'lz4', 'br', 'lz', 'rar', 'tgz'];
+                    if (archiveExts.includes(ext)) {
+                        iconHtml = `<img src="/static/images/7zip.png" class="file-icon" style="vertical-align: sub;">`;
+                        isArchive = true;
+                    }
+                }
+                
+                // Allow clicking archives to browse them
+                const clickAction = item.is_dir || isArchive ? `event.stopPropagation(); loadFiles('${item.path}')` : '';
+                const nameStyle = clickAction ? 'fw-bold' : '';
+
+                tr.innerHTML = `
+                    <td><input type="checkbox" class="form-check-input" value="${item.path}" onclick="event.stopPropagation(); toggleSelection('${item.path}')"></td>
+                    <td>
+                        ${iconHtml}
+                        <span class="${nameStyle}" style="cursor:pointer" onclick="${clickAction}">${item.name}</span>
+                    </td>
+                    <td class="text-muted small">${sizeStr}</td>
+                    <td class="text-muted small">${dateStr}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            updateCount();
+        }
+
+        // --- Helper Functions ---
+        function formatBytes(bytes, decimals = 2) {
+            if (!+bytes) return '0 B';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+        }
+
+        function toggleSelection(path) {
+            if (selectedFiles.includes(path)) {
+                selectedFiles = selectedFiles.filter(p => p !== path);
+            } else {
+                selectedFiles.push(path);
+            }
+            updateSelectionUI();
+        }
+
+        function toggleSelectAll() {
+            const checkboxes = document.querySelectorAll('#fileTableBody input[type="checkbox"]');
+            const selectAll = document.getElementById('selectAll').checked;
+            selectedFiles = [];
+            checkboxes.forEach(cb => {
+                cb.checked = selectAll;
+                if (selectAll) selectedFiles.push(cb.value);
+            });
+            updateSelectionUI();
+        }
+
+        function updateSelectionUI() {
+            updateCount();
+            
+            // Enable/Disable buttons
+            // Compress: only valid if NOT in archive
+            document.getElementById('btnCompress').disabled = currentArchive || selectedFiles.length === 0;
+            
+            // Extract: valid if 1 archive selected (normal mode) OR items selected (in archive mode)
+            if (currentArchive) {
+                document.getElementById('btnExtract').disabled = selectedFiles.length === 0;
+            } else {
+                document.getElementById('btnExtract').disabled = selectedFiles.length !== 1;
+            }
+             
+            // Delete/Create Folder: only if NOT in archive
+            document.getElementById('btnDelete').disabled = currentArchive || selectedFiles.length === 0;
+            
+            // Disable create folder button entirely if in archive
+            // (Need to find the button, it doesn't have ID in HTML provided, assuming it is the secondary one)
+            // Added ID in HTML would be better, but let's select by onclick
+            const createBtn = document.querySelector('button[onclick="openCreateFolderModal()"]');
+            if(createBtn) createBtn.disabled = !!currentArchive;
+
+            // Highlight rows
+            const rows = document.querySelectorAll('#fileTableBody tr');
+            rows.forEach(tr => {
+                const cb = tr.querySelector('input[type="checkbox"]');
+                if (cb && cb.checked) {
+                    tr.classList.add('selected-row');
+                } else {
+                    tr.classList.remove('selected-row');
+                }
+            });
+        }
+        
+        function updateCount() {
+            document.getElementById('itemCount').innerText = `${allItems.length} ${i18n[currentLang].items}`;
+            document.getElementById('selectionCount').innerText = `${selectedFiles.length} ${i18n[currentLang].selected}`;
+        }
+
+        function navigateUp() {
+            // If in archive and at root of archive, go to parent dir
+            if (currentArchive) {
+                // If currentPath is exactly the archive path, we are at root of archive
+                // Or if currentPath starts with archive path
+                // Remove last component
+                
+                // If we are at root of archive, we should exit archive mode?
+                // The currentPath for archive root is "/path/to/archive.7z/"
+                
+                let newPath = currentPath;
+                if (newPath.endsWith('/')) newPath = newPath.slice(0, -1);
+                
+                const parent = newPath.split('/').slice(0, -1).join('/') || '/';
+                loadFiles(parent);
+            } else {
+                const parent = currentPath.split('/').slice(0, -1).join('/') || '/';
+                loadFiles(parent);
+            }
+        }
+        
+        function refreshFiles() {
+            loadFiles(currentPath);
+        }
+
+        // --- Context Menu ---
+        function showContextMenu(e) {
+            const menu = document.getElementById('contextMenu');
+            menu.style.display = 'block';
+            menu.style.left = e.pageX + 'px';
+            menu.style.top = e.pageY + 'px';
+            
+            // Adjust menu items
+            const btnCompress = menu.children[0];
+            const btnExtract = menu.children[1];
+            const btnDelete = menu.children[2];
+            const btnRefresh = menu.children[3];
+            const btnCreateFolder = menu.children[4];
+            
+            if (currentArchive) {
+                // In archive mode: only show Extract and Refresh
+                btnCompress.style.display = 'none';
+                btnDelete.style.display = 'none';
+                btnCreateFolder.style.display = 'none';
+                
+                // Show Extract if items selected
+                btnExtract.style.display = selectedFiles.length > 0 ? 'block' : 'none';
+                btnRefresh.style.display = 'block';
+            } else {
+                // In normal mode
+                btnCreateFolder.style.display = 'block';
+                btnRefresh.style.display = 'block';
+
+                if (selectedFiles.length > 0) {
+                    btnCompress.style.display = 'block';
+                    btnDelete.style.display = 'block';
+                    
+                    // Show Extract only if exactly one archive is selected
+                    let showExtract = false;
+                    if (selectedFiles.length === 1) {
+                        const file = selectedFiles[0];
+                        const ext = file.split('.').pop().toLowerCase();
+                        const archiveExts = ['7z', 'zip', 'tar', 'gz', 'xz', 'bz2', 'zst', 'lz4', 'br', 'lz', 'rar', 'tgz'];
+                        if (archiveExts.includes(ext)) {
+                            showExtract = true;
+                        }
+                    }
+                    btnExtract.style.display = showExtract ? 'block' : 'none';
+                } else {
+                    btnCompress.style.display = 'none';
+                    btnDelete.style.display = 'none';
+                    btnExtract.style.display = 'none';
+                }
+            }
+        }
+
+        function contextDelete() {
+            deleteFiles();
+        }
+        
+        function openCreateFolderModal() {
+            document.getElementById('newFolderName').value = '';
+            const modal = new bootstrap.Modal(document.getElementById('createFolderModal'));
+            modal.show();
+        }
+        
+        async function createFolderAction() {
+            const name = document.getElementById('newFolderName').value;
+            if (!name) return;
+            
+            const modal = bootstrap.Modal.getInstance(document.getElementById('createFolderModal'));
+            modal.hide();
+            
+            try {
+                const response = await fetch('/api/mkdir', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ path: currentPath, name: name })
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    refreshFiles();
+                } else {
+                    alert(result.error);
+                }
+            } catch (err) {
+                alert('Error creating folder: ' + err);
+            }
+        }
+
+        function contextCompress() {
+             openCompressModal();
+        }
+        
+        function updateCompressOptions() {
+             const format = document.getElementById('format').value;
+             const method = document.getElementById('method');
+             const level = document.getElementById('level');
+             const levelVal = document.getElementById('levelVal');
+             const archiveNameInput = document.getElementById('archiveName');
+             
+             if (format === 'zst') {
+                 method.disabled = true;
+                 level.value = 11;
+                 levelVal.innerText = 11;
+                 
+                 // Update filename to append .zst instead of replacing extension
+                 // Only if we are in single file mode (which is enforced by openCompressModal)
+                 // And if the current name doesn't already end in .zst
+                 let currentName = archiveNameInput.value;
+                 // If switching from 7z to zst, we might need to restore original extension
+                 // But we don't easily know the original extension here without storing it.
+                 // Let's rely on openCompressModal to set initial state, and here just append .zst if not present
+                 
+                 // Better approach: When opening modal, we store the original filename.
+                 // Here we reconstruct based on format.
+                 if (window.originalProfoundName) {
+                      if (format === 'zst') {
+                          archiveNameInput.value = window.originalProfoundName; // The full name of file
+                      } else {
+                          // For 7z, we usually strip extension
+                          const parts = window.originalProfoundName.split('.');
+                          if (parts.length > 1) {
+                              parts.pop();
+                              archiveNameInput.value = parts.join('.');
+                          } else {
+                              archiveNameInput.value = window.originalProfoundName;
+                          }
+                      }
+                  }
+             } else {
+                 method.disabled = false;
+                 // Restore default level for 7z if needed, or keep as is? 
+                 // 7z usually defaults to 5 or 9. Let's set to 3 as per HTML default? 
+                 // HTML default was 3.
+                 level.value = 3;
+                 levelVal.innerText = 3;
+                 
+                 if (window.originalProfoundName) {
+                     const parts = window.originalProfoundName.split('.');
+                     if (parts.length > 1) {
+                         parts.pop();
+                         archiveNameInput.value = parts.join('.');
+                     } else {
+                         archiveNameInput.value = window.originalProfoundName;
+                     }
+                 }
+             }
+        }
+
+        function openCompressModal() {
+             if (selectedFiles.length === 0) return;
+             
+             // Check if single file
+             let isSingleFile = false;
+             let singleItemName = '';
+             
+             if (selectedFiles.length === 1) {
+                 const path = selectedFiles[0];
+                 const item = allItems.find(i => i.path === path);
+                 if (item) {
+                     singleItemName = item.name;
+                     if (!item.is_dir) {
+                         isSingleFile = true;
+                     }
+                 }
+             }
+             
+             // Store original name for switching logic
+             if (isSingleFile) {
+                 window.originalProfoundName = singleItemName;
+             } else {
+                 window.originalProfoundName = null;
+             }
+
+             const formatSelect = document.getElementById('format');
+             formatSelect.innerHTML = '';
+             
+             const opt7z = document.createElement('option');
+             opt7z.value = '7z';
+             opt7z.text = '7z';
+             formatSelect.appendChild(opt7z);
+             
+             if (isSingleFile) {
+                 const optZst = document.createElement('option');
+                 optZst.value = 'zst';
+                 optZst.text = 'zst';
+                 formatSelect.appendChild(optZst);
+             }
+             
+             // Reset to 7z by default
+             formatSelect.value = '7z';
+             
+             // Determine default archive name for 7z (stripped extension)
+             let defaultName = 'archive';
+             if (selectedFiles.length > 0) {
+                 if (isSingleFile) {
+                     const parts = singleItemName.split('.');
+                     if (parts.length > 1) {
+                         parts.pop();
+                         defaultName = parts.join('.');
+                     } else {
+                         defaultName = singleItemName;
+                     }
+                 } else {
+                     // Folder or multiple files
+                     const path = selectedFiles[0];
+                     const name = path.split('/').pop();
+                     const item = allItems.find(i => i.path === path);
+                     if (item && item.is_dir) {
+                         defaultName = item.name;
+                     } else {
+                         defaultName = name; 
+                     }
+                 }
+             }
+             
+             document.getElementById('archiveName').value = defaultName;
+             
+             // Trigger update to set initial state (level, method)
+             updateCompressOptions();
+             
+             const modal = new bootstrap.Modal(document.getElementById('compressModal'));
+             modal.show();
+        }
+
+        function contextExtract() {
+             if (selectedFiles.length === 1) {
+                 openDecompressModal();
+             } else {
+                 alert('Please select exactly one file to extract.');
+             }
+        }
+
+        // --- Theme & Language ---
+        async function saveSettings(key, value) {
+            try {
+                const payload = {};
+                payload[key] = value;
+                await fetch('/api/save-settings', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+            } catch (e) {
+                console.error("Failed to save settings", e);
+            }
+        }
+
+        function openSettingsModal() {
+             const modal = new bootstrap.Modal(document.getElementById('settingsModal'));
+             modal.show();
+        }
+		// function toggleTheme() {
+        //     const html = document.documentElement;
+        //     const btnIcon = document.querySelector('#themeBtn i');
+        //     const themeSelect = document.getElementById('settingTheme');
+        //     const themeBtn = document.getElementById('themeBtn');
+        //     let theme = 'light';
+        //     if (html.getAttribute('data-theme') === 'dark') {
+        //         html.removeAttribute('data-theme');
+        //         btnIcon.className = 'fa-solid fa-sun';
+        //         theme = 'light';
+        //         themeBtn.classList.replace('btn-dark', 'btn-light');
+        //     } else {
+        //         html.setAttribute('data-theme', 'dark');
+        //         btnIcon.className = 'fa-solid fa-moon';
+        //         theme = 'dark';
+        //         themeBtn.classList.replace('btn-light', 'btn-dark');
+        //     }
+        //     themeSelect.value = theme;
+        //     saveSettings('theme', theme);
+        // }
+
+        function setTheme(theme, save=true) {
+            currentTheme = theme;
+            const html = document.documentElement;
+            const btnIcon = document.querySelector('#themeBtn i');
+            const themeBtn = document.getElementById('themeBtn');
+            if (theme === 'dark') {
+                html.setAttribute('data-theme', 'dark');
+                btnIcon.className = 'fa-solid fa-moon';
+                themeBtn.classList.replace('btn-light', 'btn-dark');
+            } else {
+                html.removeAttribute('data-theme');
+                btnIcon.className = 'fa-solid fa-sun';
+                themeBtn.classList.replace('btn-dark', 'btn-light');
+            }
+            if (save) saveSettings('theme', theme);
+        }
+
+
+        function setLanguage(lang, save=true) {
+            currentLang = lang;
+            const t = i18n[lang];
+            
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.innerText = t[key];
+            });
+            
+            updateCount();
+            if (save) saveSettings('language', lang);
+        }
+        
+        function toggleLog() {
+            const output = document.getElementById('output');
+            const icon = document.getElementById('logToggleIcon');
+            // Check if already collapsed
+            if (output.classList.contains('show')) {
+                 new bootstrap.Collapse(output).hide();
+                 icon.className = 'fa-solid fa-chevron-up';
+                 saveSettings('show_log', false);
+            } else {
+                 new bootstrap.Collapse(output).show();
+                 icon.className = 'fa-solid fa-chevron-down';
+                 saveSettings('show_log', true);
+            }
+        }
+
+        function ShowLogConsole(show) {
+            const consoleContainer = document.getElementById('consoleContainer');
+            const showConsole = document.getElementById('settingShowConsole').checked;
+             if (showConsole) {
+                 consoleContainer.style.display = 'block';
+             } else {
+                 consoleContainer.style.display = 'none';
+             }
+        }
+
+        // --- File Picker ---
+        function openFilePicker(targetInputId) {
+            pickerTargetInput = targetInputId;
+            // Start picker at current path or root
+            const initialPath = document.getElementById(targetInputId).value || '/';
+            // Ensure it's a dir, if file, go up
+            // For now just start at currentPath of main browser
+            pickerCurrentPath = currentPath;
+            
+            const modal = new bootstrap.Modal(document.getElementById('filePickerModal'));
+            modal.show();
+            loadPickerFiles(pickerCurrentPath);
+        }
+
+        async function loadPickerFiles(path) {
+            try {
+                const response = await fetch(`/api/list-files?path=${encodeURIComponent(path)}`);
+                const data = await response.json();
+                
+                pickerCurrentPath = data.current_path;
+                document.getElementById('pickerPath').innerText = pickerCurrentPath;
+                
+                const list = document.getElementById('pickerList');
+                list.innerHTML = '';
+                
+                data.items.forEach(item => {
+                    if (item.is_dir) {
+                        const btn = document.createElement('button');
+                        btn.className = 'list-group-item list-group-item-action';
+                        btn.innerHTML = `<i class="fa-solid fa-folder text-warning me-2"></i> ${item.name}`;
+                        btn.onclick = () => loadPickerFiles(item.path);
+                        list.appendChild(btn);
+                    }
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function pickerNavigateUp() {
+            const parent = pickerCurrentPath.split('/').slice(0, -1).join('/') || '/';
+            loadPickerFiles(parent);
+        }
+
+        function pickerConfirm() {
+            document.getElementById(pickerTargetInput).value = pickerCurrentPath;
+            const modal = bootstrap.Modal.getInstance(document.getElementById('filePickerModal'));
+            modal.hide();
+        }
+
+        // --- Actions ---
+        async function compressFiles() {
+            const modalEl = document.getElementById('compressModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            
+            const archiveName = document.getElementById('archiveName').value;
+            const dest = document.getElementById('compressDest').value;
+            const format = document.getElementById('format').value;
+            const method = document.getElementById('method').value;
+            const level = document.getElementById('level').value;
+
+            const payload = {
+                files: selectedFiles,
+                destination: dest,
+                archive_name: archiveName,
+                format: format,
+                method: method,
+                level: parseInt(level)
+            };
+            
+            modal.hide();
+            showOutput(i18n[currentLang].loading, true);
+
+            try {
+                const response = await fetch('/api/compress', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showOutput(`${i18n[currentLang].success}:\n` + result.output);
+                    refreshFiles();
+                } else {
+                    showOutput(`${i18n[currentLang].error}:\n` + result.error);
+                }
+            } catch (err) {
+                showOutput('Request failed: ' + err);
+            }
+        }
+        
+        function openDecompressModal() {
+            if (currentArchive) {
+                // In archive mode
+                if (selectedFiles.length === 0) return;
+                
+                document.getElementById('extractArchiveFile').value = currentArchive;
+                // Files to extract: selectedFiles (virtual paths)
+                // We will process them in decompressFile
+                
+                // Default dest: parent of archive
+                const target = currentOrigin || currentArchive;
+                const parentDir = target.substring(0, target.lastIndexOf('/'));
+                document.getElementById('extractDest').value = parentDir;
+                
+                const modal = new bootstrap.Modal(document.getElementById('decompressModal'));
+                modal.show();
+            } else {
+                // Normal mode
+                if (selectedFiles.length !== 1) return;
+                document.getElementById('extractArchiveFile').value = selectedFiles[0];
+                // Default dest to current path
+                document.getElementById('extractDest').value = currentPath;
+                
+                const modal = new bootstrap.Modal(document.getElementById('decompressModal'));
+                modal.show();
+            }
+        }
+
+        async function decompressFile() {
+            const modalEl = document.getElementById('decompressModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            
+            const archiveFile = document.getElementById('extractArchiveFile').value;
+            const dest = document.getElementById('extractDest').value;
+
+            const payload = {
+                archive_file: archiveFile,
+                destination: dest
+            };
+            
+            if (currentArchive) {
+                // Calculate internal paths
+                // Use item.extract_path if available (backend calculated)
+                const files = selectedFiles.map(f => {
+                    const item = allItems.find(i => i.path === f);
+                    if (item && item.extract_path) {
+                        return item.extract_path;
+                    }
+                    
+                    // Fallback for compatibility (should not be reached if backend is updated)
+                    let internal = f.substring(currentArchive.length);
+                    if (internal.startsWith('/')) internal = internal.substring(1);
+                    return internal;
+                });
+                
+                payload.files = files;
+            }
+
+            modal.hide();
+            showOutput(i18n[currentLang].loading, true);
+
+            try {
+                const response = await fetch('/api/decompress', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showOutput(`${i18n[currentLang].success}:\n` + result.output);
+                    if (!currentArchive) refreshFiles(); // Refresh if in normal mode
+                } else {
+                    showOutput(`${i18n[currentLang].error}:\n` + result.error);
+                }
+            } catch (err) {
+                showOutput('Request failed: ' + err);
+            }
+        }
+        
+        async function deleteFiles() {
+            if (selectedFiles.length === 0) return;
+            
+            document.getElementById('deleteConfirmMsg').innerText = `${i18n[currentLang].delete_confirm} (${selectedFiles.length} ${i18n[currentLang].items_selected})`;
+            const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+            modal.show();
+        }
+        
+        async function confirmDeleteAction() {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal'));
+            modal.hide();
+            
+            showOutput(i18n[currentLang].loading, true);
+            
+            try {
+                const response = await fetch('/api/delete', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ files: selectedFiles })
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showOutput(`${i18n[currentLang].success}: Deleted ${result.deleted.length} items`);
+                    if (result.errors && result.errors.length > 0) {
+                        showOutput(`Errors:\n${result.errors.join('\n')}`);
+                    }
+                    refreshFiles();
+                } else {
+                    showOutput(`${i18n[currentLang].error}:\n` + (result.errors ? result.errors.join('\n') : 'Unknown error'));
+                    if (result.deleted && result.deleted.length > 0) refreshFiles();
+                }
+            } catch (err) {
+                showOutput('Request failed: ' + err);
+            }
+        }
+
+        // --- Advanced Search ---
+        function toggleAdvMode() {
+            const isPatternMode = document.getElementById('modePattern').checked;
+            
+            document.getElementById('advPattern').disabled = !isPatternMode;
+            document.getElementById('advUseRegex').disabled = !isPatternMode;
+            document.getElementById('advRecursive').disabled = !isPatternMode;
+            document.getElementById('advCustomCommand').disabled = isPatternMode;
+        }
+        
+        function initAdvancedModal() {
+             document.getElementById('advBasePath').value = currentPath;
+             
+             // Reset to Pattern Mode
+             document.getElementById('modePattern').checked = true;
+             toggleAdvMode();
+             
+             document.getElementById('advPattern').value = '*.log';
+             document.getElementById('advCustomCommand').value = '';
+
+             // Reset to Pack Mode
+             document.getElementById('advModePack').checked = true;
+             toggleAdvCompressMode();
+        }
+
+        function toggleAdvCompressMode() {
+            const isPack = document.getElementById('advModePack').checked;
+            document.getElementById('advArchiveNameGroup').style.display = isPack ? 'block' : 'none';
+            document.getElementById('advIndividualFormat').style.display = isPack ? 'none' : 'block';
+        }
+
+        async function previewSearch() {
+            const path = document.getElementById('advBasePath').value;
+            const pattern = document.getElementById('advPattern').value;
+            const recursive = document.getElementById('advRecursive').checked;
+            const useRegex = document.getElementById('advUseRegex').checked;
+            const isPatternMode = document.getElementById('modePattern').checked;
+            const customCommand = isPatternMode ? '' : document.getElementById('advCustomCommand').value;
+            
+            const resultsDiv = document.getElementById('advResults');
+            resultsDiv.innerHTML = `<div class="text-center mt-5"><div class="spinner-border text-primary"></div></div>`;
+            
+            try {
+                const response = await fetch('/api/find', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ path, pattern, recursive, use_regex: useRegex, custom_command: customCommand })
+                });
+                const data = await response.json();
+                
+                if (data.error) {
+                    resultsDiv.innerHTML = `<div class="text-danger p-2">${data.error}</div>`;
+                    return;
+                }
+                
+                foundFilesList = data.files;
+                document.getElementById('advCount').innerText = `${foundFilesList.length} files found`;
+                
+                if (foundFilesList.length === 0) {
+                    resultsDiv.innerHTML = `<div class="text-muted text-center mt-5">${i18n[currentLang].no_results}</div>`;
+                    document.getElementById('btnAdvCompress').disabled = true;
+                } else {
+                    resultsDiv.innerHTML = '<ul class="list-group list-group-flush small">' + 
+                        foundFilesList.map(f => `<li class="list-group-item bg-transparent text-body">${f}</li>`).join('') + 
+                        '</ul>';
+                    document.getElementById('btnAdvCompress').disabled = false;
+                }
+            } catch (err) {
+                 resultsDiv.innerHTML = `<div class="text-danger p-2">Error: ${err}</div>`;
+            }
+        }
+        
+        async function compressAdvanced() {
+            const modalEl = document.getElementById('advancedModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            
+            const dest = document.getElementById('advDest').value;
+            const isPack = document.getElementById('advModePack').checked;
+            
+            let payload = {
+                files: foundFilesList,
+                destination: dest,
+                level: 3 // Default level
+            };
+            
+            if (isPack) {
+                payload.mode = 'pack';
+                payload.archive_name = document.getElementById('advArchiveName').value;
+                payload.format = '7z';
+                payload.method = 'zstd';
+            } else {
+                payload.mode = 'each';
+                payload.format = document.getElementById('advFormat').value;
+                payload.method = 'zstd'; // Default method
+                payload.archive_name = ''; // Not used
+            }
+
+            modal.hide();
+            showOutput(i18n[currentLang].loading, true);
+
+            try {
+                const response = await fetch('/api/compress', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showOutput(`${i18n[currentLang].success}:\n` + result.output);
+                    refreshFiles();
+                } else {
+                    showOutput(`${i18n[currentLang].error}:\n` + result.error);
+                }
+            } catch (err) {
+                showOutput('Request failed: ' + err);
+            }
+        }
+
+        function showOutput(text, clear = false) {
+            const out = document.getElementById('output');
+            if (!out.classList.contains('show')) {
+                 new bootstrap.Collapse(out).show();
+                 document.getElementById('logToggleIcon').className = 'fa-solid fa-chevron-down';
+            }
+            if (clear) out.innerText = '';
+            out.innerText += text + '\n';
+            out.scrollTop = out.scrollHeight;
+        }
+    </script>
+</body>
+</html>

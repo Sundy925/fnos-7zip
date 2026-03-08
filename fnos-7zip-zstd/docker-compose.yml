@@ -1,0 +1,21 @@
+version: '3'
+services:
+  fnos-7zip-zstd:
+    build: .
+    image: fnos-7zip-zstd:latest
+    container_name: fnos-7zip-zstd
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./config:/config
+      - /:/host_fs:ro
+    environment:
+      - FLASK_ENV=production
+      - PKG_CONFIG_PATH=/config/config.json
+      - DOCKER_MOUNT_PATHS=/host_fs:/Root
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

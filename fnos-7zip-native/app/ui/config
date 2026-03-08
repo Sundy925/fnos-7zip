@@ -1,0 +1,48 @@
+{
+    ".url": {
+        "fnos-7zip-native.Application": {
+            "title": "7zip-ZS",
+            "icon": "images/icon_{0}.png",
+            "type": "iframe",
+            "protocol": "http",
+            "port": 5000,
+            "url": "/",
+            "allUsers": true,
+            "fileTypes": [
+                "7z",
+                "zip",
+                "rar",
+                "tar",
+                "gz",
+                "bz2",
+                "xz",
+                "zst",
+                "lz4",
+                "br",
+                "lz",
+                "tgz",
+                "tbz2",
+                "txz",
+                "iso",
+                "cab",
+                "ar",
+                "cpio",
+                "deb",
+                "rpm"
+            ],
+            "mimeType": [
+                "application/x-7z-compressed",
+                "application/zip",
+                "application/x-tar",
+                "application/gzip",
+                "application/x-xz",
+                "application/x-bzip2",
+                "application/zstd",
+                "application/x-lz4",
+                "application/x-brotli",
+                "application/x-lzip",
+                "application/vnd.rar"
+            ]
+        }
+    }
+}

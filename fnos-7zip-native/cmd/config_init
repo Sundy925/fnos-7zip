@@ -1,0 +1,11 @@
+#!/bin/bash
+
+LOG_FILE="${TRIM_PKGTMP}/info.log"
+
+log_msg() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> ${LOG_FILE}
+}
+
+log_msg "config_init: TRIM_DATA_ACCESSIBLE_PATHS: ${TRIM_DATA_ACCESSIBLE_PATHS}"
+
+exit 0

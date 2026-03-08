@@ -1,0 +1,11 @@
+appname               = fnos-7zip-native
+version               = 0.0.1
+display_name          = 7zip-ZS
+desc                  = A web-based 7-Zip suite for fnOS with Zstd, LZ4, Brotli support.
+arch                  = x86_64
+source                = thirdparty
+maintainer            = sundy
+distributor           = sundy
+desktop_uidir         = ui
+desktop_applaunchname = fnos-7zip-native.Application
+install_dep_apps      = python312

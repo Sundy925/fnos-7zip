@@ -1,0 +1,18 @@
+{
+    "roots": [
+        {
+            "name": "Root",
+            "path": "/"
+        },
+        {
+            "name": "Home",
+            "path": "/home"
+        }
+    ],
+    "settings": {
+        "language": "zh",
+        "theme": "light",
+        "show_log": true,
+        "temp_extract_max_mb": 300
+    }
+}
